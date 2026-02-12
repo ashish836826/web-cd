@@ -3,11 +3,12 @@ pipeline {
 
     environment {
         REGISTRY = "docker.io"
-        IMAGE_NAME = "ashish7840/web-cd"   // your Docker Hub username added
+        IMAGE_NAME = "ashish7840/web-cd"
         REGISTRY_CREDENTIAL = "dockerhub-creds"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ashish836826/web-cd.git'
@@ -36,12 +37,17 @@ pipeline {
 
     post {
         always {
-            sh "docker rmi ${IMAGE_NAME}:${env.BUILD_NUMBER} || true"
-            sh "docker rmi ${IMAGE_NAME}:latest || true"
+            bat """
+            docker rmi ${IMAGE_NAME}:${env.BUILD_NUMBER}
+            docker rmi ${IMAGE_NAME}:latest
+            exit 0
+            """
         }
+
         success {
             echo "CI/CD pipeline finished successfully!"
         }
+
         failure {
             echo "CI/CD pipeline failed."
         }
