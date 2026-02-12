@@ -11,7 +11,8 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/your-repo-url.git'
+                git branch: 'main',
+                    url: 'https://github.com/ashish836826/web-cd.git'
             }
         }
 
