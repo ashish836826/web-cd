@@ -4,7 +4,7 @@ pipeline {
     environment {
         REGISTRY = "docker.io"
         IMAGE_NAME = "ashish7840/web-cd"   // your Docker Hub username added
-        REGISTRY_CREDENTIAL = "dockerhub-cred-id"
+        REGISTRY_CREDENTIAL = "dockerhub-creds"
     }
 
     stages {
