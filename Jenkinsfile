@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    IMAGE = "shivsoftapp/static-site"
+    IMAGE = "ashish836826/webcd"
     TAG = "latest"
   }
 
