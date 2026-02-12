@@ -2,54 +2,69 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "docker.io"
-        IMAGE_NAME = "ashish7840/web-cd"
-        REGISTRY_CREDENTIAL = "dockerhub-creds"
+        DOCKER_HUB = "ashish7840"
+        IMAGE_NAME = "my-node-app"
+        IMAGE_TAG = "82"
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/ashish836826/web-cd.git'
+                git 'https://github.com/your-repo-url.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    dockerImage = docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}")
+                bat """
+                docker build -t %DOCKER_HUB%/%IMAGE_NAME%:%IMAGE_TAG% .
+                """
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    bat """
+                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    """
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry("https://${REGISTRY}", "${REGISTRY_CREDENTIAL}") {
-                        dockerImage.push("${env.BUILD_NUMBER}")
-                        dockerImage.push("latest")
-                    }
-                }
+                bat """
+                docker push %DOCKER_HUB%/%IMAGE_NAME%:%IMAGE_TAG%
+                """
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                bat """
+                docker stop my-container || exit 0
+                docker rm my-container || exit 0
+                docker run -d -p 3000:3000 --name my-container %DOCKER_HUB%/%IMAGE_NAME%:%IMAGE_TAG%
+                """
             }
         }
     }
 
     post {
         always {
-            bat """
-            docker rmi ${IMAGE_NAME}:${env.BUILD_NUMBER}
-            docker rmi ${IMAGE_NAME}:latest
-            exit 0
-            """
+            bat "docker logout"
         }
-
         success {
-            echo "CI/CD pipeline finished successfully!"
+            echo "Pipeline executed successfully!"
         }
-
         failure {
-            echo "CI/CD pipeline failed."
+            echo "Pipeline failed!"
         }
     }
 }
